@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo/main.dart';
 
 class Todo {
   final int id;
@@ -58,14 +59,33 @@ class _TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 다크모드 여부
+    bool isDarkMode = MyApp.themeNotifier.value == ThemeMode.light;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('간단 투두 리스트'),
+        title: const Text('체크 리스트'),
+        actions: [
+          IconButton(
+              // 토글 부분
+              onPressed: () {
+                MyApp.themeNotifier.value =
+                    isDarkMode ? ThemeMode.dark : ThemeMode.light;
+              },
+              icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode))
+        ],
       ),
       body: ListView.builder(
         itemCount: _todoList.length,
         itemBuilder: (BuildContext context, int index) {
           final todo = _todoList[index];
+
+          Color backgroundColor =
+              isDarkMode ? Colors.white : Color.fromARGB(255, 42, 42, 42);
+          Color dismissedBackgroundColor = isDarkMode
+              ? Color.fromARGB(255, 195, 195, 195)
+              : Color.fromARGB(255, 81, 81, 81);
+          Color textColor = isDarkMode ? Colors.black : Colors.white;
 
           return Dismissible(
             key: ValueKey<Todo>(todo),
@@ -75,13 +95,14 @@ class _TodoListPageState extends State<TodoListPage> {
               });
             },
             child: Container(
-              color:
-                  todo.isCompleted ? Colors.grey[200] : Colors.white, // 배경색 추가
+              color: todo.isCompleted
+                  ? dismissedBackgroundColor
+                  : backgroundColor, // 배경색 추가
               child: ListTile(
                 title: Text(
                   todo.title,
                   style: TextStyle(
-                    color: todo.isCompleted ? Colors.grey : Colors.black,
+                    color: todo.isCompleted ? Colors.grey : textColor,
                     decoration: todo.isCompleted
                         ? TextDecoration.lineThrough
                         : TextDecoration.none,
