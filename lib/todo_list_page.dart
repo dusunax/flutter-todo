@@ -18,12 +18,43 @@ class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _TodoListPageState createState() => _TodoListPageState();
 }
 
 class _TodoListPageState extends State<TodoListPage> {
   // 투두 리스트
   final List<Todo> _todoList = [];
+
+  // 할 일 추가 함수
+  void _addTodo() {
+    // 다이얼로그를 띄워 입력받은 후 _todoList에 추가
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('할 일 추가'),
+          content: TextField(
+            autofocus: true,
+            onSubmitted: (text) {
+              setState(() {
+                _todoList.insert(
+                    0, Todo(title: text, id: _todoList.length)); // 맨 앞에 추가
+              });
+              Navigator.pop(context);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // 할 일 제거 함수
+  void _removeTodo(int index) {
+    setState(() {
+      _todoList.removeAt(index); // 리스트에서 삭제
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,35 +128,5 @@ class _TodoListPageState extends State<TodoListPage> {
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  // 할 일 추가 함수
-  void _addTodo() {
-    // 다이얼로그를 띄워 입력받은 후 _todoList에 추가
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('할 일 추가'),
-          content: TextField(
-            autofocus: true,
-            onSubmitted: (text) {
-              setState(() {
-                _todoList.insert(
-                    0, Todo(title: text, id: _todoList.length)); // 맨 앞에 추가
-              });
-              Navigator.pop(context);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  // 할 일 제거 함수
-  void _removeTodo(int index) {
-    setState(() {
-      _todoList.removeAt(index); // 리스트에서 삭제
-    });
   }
 }
