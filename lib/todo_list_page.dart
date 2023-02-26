@@ -81,10 +81,10 @@ class _TodoListPageState extends State<TodoListPage> {
           final todo = _todoList[index];
 
           Color backgroundColor =
-              isDarkMode ? Colors.white : Color.fromARGB(255, 42, 42, 42);
+              isDarkMode ? Colors.white : const Color.fromARGB(255, 42, 42, 42);
           Color dismissedBackgroundColor = isDarkMode
-              ? Color.fromARGB(255, 195, 195, 195)
-              : Color.fromARGB(255, 81, 81, 81);
+              ? const Color.fromARGB(255, 195, 195, 195)
+              : const Color.fromARGB(255, 81, 81, 81);
           Color textColor = isDarkMode ? Colors.black : Colors.white;
 
           return Dismissible(
