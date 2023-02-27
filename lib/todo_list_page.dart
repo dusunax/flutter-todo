@@ -15,6 +15,22 @@ class Todo {
   });
 }
 
+class ThemeColors {
+  final Color backgroundColor;
+  final Color dismissedBackgroundColor;
+  final Color textColor;
+  final Color activeColor;
+  final Color deleteIconColor;
+
+  ThemeColors({
+    required this.backgroundColor,
+    required this.dismissedBackgroundColor,
+    required this.textColor,
+    required this.activeColor,
+    required this.deleteIconColor,
+  });
+}
+
 class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
 
@@ -24,8 +40,62 @@ class TodoListPage extends StatefulWidget {
 }
 
 class _TodoListPageState extends State<TodoListPage> {
+  // 클래스 멤버 변수
+  bool _isDarkMode = false;
+
+  // 투두 리스트 색상
+  late ThemeColors themeColors;
+
   // 투두 리스트
   final List<Todo> _todoList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    themeColors = MyApp.themeNotifier.value == ThemeMode.light
+        ? ThemeColors(
+            backgroundColor: Colors.white,
+            dismissedBackgroundColor: const Color.fromARGB(255, 195, 195, 195),
+            textColor: Colors.black,
+            activeColor: Colors.grey,
+            deleteIconColor: Colors.red[300]!,
+          )
+        : ThemeColors(
+            backgroundColor: const Color.fromARGB(255, 42, 42, 42),
+            dismissedBackgroundColor: const Color.fromARGB(255, 81, 81, 81),
+            textColor: Colors.white,
+            activeColor: Colors.grey,
+            deleteIconColor: Colors.red[300]!,
+          );
+    MyApp.themeNotifier.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    MyApp.themeNotifier.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    setState(() {
+      themeColors = MyApp.themeNotifier.value == ThemeMode.light
+          ? ThemeColors(
+              backgroundColor: Colors.white,
+              dismissedBackgroundColor:
+                  const Color.fromARGB(255, 195, 195, 195),
+              textColor: Colors.black,
+              activeColor: Colors.grey,
+              deleteIconColor: Colors.red[300]!,
+            )
+          : ThemeColors(
+              backgroundColor: const Color.fromARGB(255, 42, 42, 42),
+              dismissedBackgroundColor: const Color.fromARGB(255, 81, 81, 81),
+              textColor: Colors.white,
+              activeColor: Colors.grey,
+              deleteIconColor: Colors.red[300]!,
+            );
+    });
+  }
 
   // 할 일 추가 함수
   void _addTodo() {
@@ -39,8 +109,8 @@ class _TodoListPageState extends State<TodoListPage> {
             autofocus: true,
             onSubmitted: (text) {
               setState(() {
-                _todoList.insert(
-                    0, Todo(title: text, id: _todoList.length)); // 맨 앞에 추가
+                final newTodo = Todo(title: text, id: _todoList.length);
+                _todoList.insert(0, newTodo); // 맨 앞에 추가
               });
               Navigator.pop(context);
             },
@@ -57,22 +127,31 @@ class _TodoListPageState extends State<TodoListPage> {
     });
   }
 
+  // 체크박스 상태 변경 함수
+  void _onCheckboxChanged(int index, bool value) {
+    setState(() {
+      final todo = _todoList[index];
+      _todoList.removeAt(index);
+      todo.isCompleted = value;
+      _todoList.insert(value ? _todoList.length : 0, todo);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 다크모드 여부
-    bool isDarkMode = MyApp.themeNotifier.value == ThemeMode.light;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('체크 리스트'),
         actions: [
           IconButton(
-              // 토글 부분
-              onPressed: () {
-                MyApp.themeNotifier.value =
-                    isDarkMode ? ThemeMode.dark : ThemeMode.light;
-              },
-              icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode))
+            // 토글 부분
+            onPressed: () {
+              ThemeColors.;
+              MyApp.themeNotifier.value =
+                  _isDarkMode ? ThemeMode.dark : ThemeMode.light;
+            },
+            icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
+          ),
         ],
       ),
       body: ListView.builder(
@@ -80,32 +159,38 @@ class _TodoListPageState extends State<TodoListPage> {
         itemBuilder: (BuildContext context, int index) {
           final todo = _todoList[index];
 
-          Color backgroundColor =
-              isDarkMode ? Colors.white : const Color.fromARGB(255, 42, 42, 42);
-          Color dismissedBackgroundColor = isDarkMode
-              ? const Color.fromARGB(255, 195, 195, 195)
-              : const Color.fromARGB(255, 81, 81, 81);
-          Color textColor = isDarkMode ? Colors.black : Colors.white;
+          final backgroundColor =
+              todo.isCompleted ? Colors.grey.shade200 : Colors.transparent;
+          final dismissedBackgroundColor =
+              _isDarkMode ? const Color(0xFFC3C3C3) : const Color(0xFF515151);
+          final textColor = _isDarkMode ? Colors.black : Colors.white;
 
           return Dismissible(
             key: ValueKey<Todo>(todo),
             onDismissed: (direction) {
-              setState(() {
-                _todoList.removeAt(index); // 리스트에서 삭제
-              });
+              _removeTodo(index);
             },
+            background: Container(
+              color: dismissedBackgroundColor,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 16),
+              child: const Icon(Icons.check, color: Colors.white),
+            ),
+            secondaryBackground: Container(
+              color: dismissedBackgroundColor,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 16),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
             child: Container(
-              color: todo.isCompleted
-                  ? dismissedBackgroundColor
-                  : backgroundColor, // 배경색 추가
+              color: backgroundColor,
               child: ListTile(
                 title: Text(
                   todo.title,
                   style: TextStyle(
-                    color: todo.isCompleted ? Colors.grey : textColor,
-                    decoration: todo.isCompleted
-                        ? TextDecoration.lineThrough
-                        : TextDecoration.none,
+                    color: textColor,
+                    decoration:
+                        todo.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 trailing: Row(
@@ -113,31 +198,22 @@ class _TodoListPageState extends State<TodoListPage> {
                   children: [
                     Checkbox(
                       value: todo.isCompleted,
-                      onChanged: (checked) {
-                        setState(() {
-                          todo.isCompleted = checked ?? false;
-                          if (todo.isCompleted) {
-                            _todoList.removeAt(index);
-                            _todoList.insert(_todoList.length, todo);
-                          } else {
-                            _todoList.removeAt(index);
-                            _todoList.insert(0, todo);
-                          }
-                        });
+                      onChanged: (value) {
+                        _onCheckboxChanged(index, value ?? false);
                       },
                       activeColor: Colors.grey,
                     ),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red[300]),
-                      onPressed: () => _removeTodo(index),
+                      onPressed: () {
+                        _removeTodo(index);
+                      },
                     ),
                   ],
                 ),
                 leading: Icon(
-                  todo.isCompleted
-                      ? Icons.done_rounded
-                      : Icons.hourglass_empty_rounded,
-                  color: todo.isCompleted ? Colors.grey : Colors.black,
+                  todo.icon,
+                  color: todo.isCompleted ? Colors.grey : null,
                 ),
               ),
             ),
@@ -145,7 +221,9 @@ class _TodoListPageState extends State<TodoListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addTodo,
+        onPressed: () {
+          _addTodo();
+        },
         child: const Icon(Icons.add),
       ),
     );
