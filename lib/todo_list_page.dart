@@ -146,9 +146,9 @@ class _TodoListPageState extends State<TodoListPage> {
           IconButton(
             // 토글 부분
             onPressed: () {
-              ThemeColors.;
               MyApp.themeNotifier.value =
                   _isDarkMode ? ThemeMode.dark : ThemeMode.light;
+              _isDarkMode = !_isDarkMode;
             },
             icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
           ),
