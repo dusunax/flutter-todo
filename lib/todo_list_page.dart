@@ -1,35 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo/main.dart';
-
-class Todo {
-  final int id;
-  final String title;
-  bool isCompleted;
-  IconData? icon;
-
-  Todo({
-    required this.id,
-    required this.title,
-    this.isCompleted = false,
-    this.icon = Icons.hourglass_empty_rounded,
-  });
-}
-
-class ThemeColors {
-  final Color backgroundColor;
-  final Color dismissedBackgroundColor;
-  final Color textColor;
-  final Color activeColor;
-  final Color deleteIconColor;
-
-  ThemeColors({
-    required this.backgroundColor,
-    required this.dismissedBackgroundColor,
-    required this.textColor,
-    required this.activeColor,
-    required this.deleteIconColor,
-  });
-}
+import 'package:todo/todo.dart';
 
 class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
@@ -44,7 +15,7 @@ class _TodoListPageState extends State<TodoListPage> {
   bool _isDarkMode = false;
 
   // 투두 리스트 색상
-  late ThemeColors themeColors;
+  late ThemeColors _themeColors;
 
   // 투두 리스트
   final List<Todo> _todoList = [];
@@ -52,21 +23,8 @@ class _TodoListPageState extends State<TodoListPage> {
   @override
   void initState() {
     super.initState();
-    themeColors = MyApp.themeNotifier.value == ThemeMode.light
-        ? ThemeColors(
-            backgroundColor: Colors.white,
-            dismissedBackgroundColor: const Color.fromARGB(255, 195, 195, 195),
-            textColor: Colors.black,
-            activeColor: Colors.grey,
-            deleteIconColor: Colors.red[300]!,
-          )
-        : ThemeColors(
-            backgroundColor: const Color.fromARGB(255, 42, 42, 42),
-            dismissedBackgroundColor: const Color.fromARGB(255, 81, 81, 81),
-            textColor: Colors.white,
-            activeColor: Colors.grey,
-            deleteIconColor: Colors.red[300]!,
-          );
+    _isDarkMode = MyApp.themeNotifier.value == ThemeMode.dark;
+    _themeColors = _isDarkMode ? ThemeColors.darkTheme : ThemeColors.lightTheme;
     MyApp.themeNotifier.addListener(_onThemeChanged);
   }
 
@@ -78,22 +36,9 @@ class _TodoListPageState extends State<TodoListPage> {
 
   void _onThemeChanged() {
     setState(() {
-      themeColors = MyApp.themeNotifier.value == ThemeMode.light
-          ? ThemeColors(
-              backgroundColor: Colors.white,
-              dismissedBackgroundColor:
-                  const Color.fromARGB(255, 195, 195, 195),
-              textColor: Colors.black,
-              activeColor: Colors.grey,
-              deleteIconColor: Colors.red[300]!,
-            )
-          : ThemeColors(
-              backgroundColor: const Color.fromARGB(255, 42, 42, 42),
-              dismissedBackgroundColor: const Color.fromARGB(255, 81, 81, 81),
-              textColor: Colors.white,
-              activeColor: Colors.grey,
-              deleteIconColor: Colors.red[300]!,
-            );
+      _isDarkMode = MyApp.themeNotifier.value == ThemeMode.dark;
+      _themeColors =
+          _isDarkMode ? ThemeColors.darkTheme : ThemeColors.lightTheme;
     });
   }
 
@@ -142,6 +87,7 @@ class _TodoListPageState extends State<TodoListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('체크 리스트'),
+        centerTitle: true,
         actions: [
           IconButton(
             // 토글 부분
@@ -159,25 +105,26 @@ class _TodoListPageState extends State<TodoListPage> {
         itemBuilder: (BuildContext context, int index) {
           final todo = _todoList[index];
 
-          final backgroundColor =
-              todo.isCompleted ? Colors.grey.shade200 : Colors.transparent;
-          final dismissedBackgroundColor =
-              _isDarkMode ? const Color(0xFFC3C3C3) : const Color(0xFF515151);
-          final textColor = _isDarkMode ? Colors.black : Colors.white;
+          final backgroundColor = todo.isCompleted
+              ? _themeColors.dismissedBackgroundColor
+              : Colors.transparent;
+
+          final textColor = _themeColors.textColor;
 
           return Dismissible(
             key: ValueKey<Todo>(todo),
-            onDismissed: (direction) {
-              _removeTodo(index);
-            },
+            onDismissed: (direction) => _removeTodo(index),
             background: Container(
-              color: dismissedBackgroundColor,
+              color: _themeColors.dismissedBackgroundColor,
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.only(left: 16),
-              child: const Icon(Icons.check, color: Colors.white),
+              child: const Icon(
+                Icons.abc,
+                color: Colors.white,
+              ),
             ),
             secondaryBackground: Container(
-              color: dismissedBackgroundColor,
+              color: _themeColors.dismissedBackgroundColor,
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 16),
               child: const Icon(Icons.delete, color: Colors.white),
@@ -197,12 +144,11 @@ class _TodoListPageState extends State<TodoListPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Checkbox(
-                      value: todo.isCompleted,
-                      onChanged: (value) {
-                        _onCheckboxChanged(index, value ?? false);
-                      },
-                      activeColor: Colors.grey,
-                    ),
+                        value: todo.isCompleted,
+                        onChanged: (value) {
+                          _onCheckboxChanged(index, value ?? false);
+                        },
+                        activeColor: _themeColors.activeColor),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red[300]),
                       onPressed: () {
@@ -212,8 +158,10 @@ class _TodoListPageState extends State<TodoListPage> {
                   ],
                 ),
                 leading: Icon(
-                  todo.icon,
-                  color: todo.isCompleted ? Colors.grey : null,
+                  todo.isCompleted ? Icons.check : Icons.hourglass_bottom,
+                  color: todo.isCompleted
+                      ? _themeColors.dismissedTextColor
+                      : _themeColors.dismissedBackgroundColor,
                 ),
               ),
             ),
