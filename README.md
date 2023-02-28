@@ -41,6 +41,19 @@
 
 ---
 
-### 230227
+## 날짜별 작업내용
+
+### 230227 진행 상황
+- 할 일 쓰기, 삭제, 완료
+- 다크모드 추가 (버그 있음)
 
 ![image](https://user-images.githubusercontent.com/94776135/221604167-57825482-d48d-4685-ae64-4d57bfd6ad9c.png)
+
+### 230301 진행 상황
+- 다크모드 수정 (status바 수정 필요)
+- 기본 CRUD (버그 있음) 
+  - 리스트는 Dismissible(드래그로 삭제)
+- 애니메이션 추가
+
+![image](https://user-images.githubusercontent.com/94776135/221907912-f0058c02-5134-42e1-ac61-b71f6874773a.png)
+
