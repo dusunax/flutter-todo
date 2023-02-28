@@ -13,6 +13,8 @@ class TodoListPage extends StatefulWidget {
 class _TodoListPageState extends State<TodoListPage> {
   // 클래스 멤버 변수
   bool _isDarkMode = false;
+  bool _isCompleted = false;
+  int _plantCm = 0;
 
   // 투두 리스트 색상
   late ThemeColors _themeColors;
@@ -54,7 +56,8 @@ class _TodoListPageState extends State<TodoListPage> {
             autofocus: true,
             onSubmitted: (text) {
               setState(() {
-                final newTodo = Todo(title: text, id: _todoList.length);
+                final lastTodo = _todoList.isNotEmpty ? _todoList.last : null;
+                final newTodo = Todo(title: text, id: (lastTodo?.id ?? 0) + 1);
                 _todoList.insert(0, newTodo); // 맨 앞에 추가
               });
               Navigator.pop(context);
@@ -66,23 +69,37 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   // 할 일 제거 함수
-  void _removeTodo(int index) {
+  void _removeTodoById(int id) {
     setState(() {
-      _todoList.removeAt(index); // 리스트에서 삭제
+      _todoList.removeWhere((todo) => todo.id == id); // 리스트에서 삭제
     });
   }
 
   // 체크박스 상태 변경 함수
-  void _onCheckboxChanged(int index, bool value) {
+  void _onCheckboxChanged(int index, bool isCompleted) {
     setState(() {
       final todo = _todoList[index];
-      _todoList.removeAt(index);
-      todo.isCompleted = value;
-      _todoList.insert(value ? _todoList.length : 0, todo);
+      _removeTodoById(todo.id);
+      todo.isCompleted = isCompleted;
+      _todoList.insert(isCompleted ? _todoList.length : 0, todo);
+
+      _plantCm = _todoList.length * 1;
+      if (isCompleted) {
+        final todo = _todoList[index];
+        // 완료 시 plant_cm 증가
+        todo.plantCm += 1;
+        // 이미지 표시 후 0.5초 후 사라지도록 설정
+        _isCompleted = true;
+        Future.delayed(const Duration(milliseconds: 800), () {
+          setState(() {
+            _isCompleted = false;
+          });
+        });
+      }
     });
   }
 
-  /** 할 일 수정 함수 : 완료되지 않은 리스트를 클릭 시, 수정합니다.*/
+  /// 할 일 수정 함수 : 완료되지 않은 리스트를 클릭 시, 수정합니다.
   void _editTodoItem(Todo todo) {
     final titleController = TextEditingController(text: todo.title);
 
@@ -119,6 +136,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
+    _plantCm = _todoList.length * 1;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('체크 리스트'),
@@ -135,64 +154,128 @@ class _TodoListPageState extends State<TodoListPage> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _todoList.length,
-        itemBuilder: (BuildContext context, int index) {
-          final todo = _todoList[index];
+      body: Stack(children: [
+        ListView.builder(
+          itemCount: _todoList.length,
+          itemBuilder: (BuildContext context, int index) {
+            final todo = _todoList[index];
 
-          final backgroundColor = todo.isCompleted
-              ? _themeColors.dismissedBackgroundColor
-              : Colors.transparent;
+            final backgroundColor = todo.isCompleted
+                ? _themeColors.dismissedBackgroundColor
+                : Colors.transparent;
 
-          final textColor = _themeColors.textColor;
+            final textColor = _themeColors.textColor;
 
-          return Dismissible(
-              key: ValueKey<Todo>(todo),
-              onDismissed: (direction) => _removeTodo(index),
-              background: Container(
-                color: _themeColors.dismissedBackgroundColor,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.only(left: 16),
-              ),
-              secondaryBackground: Container(
-                color: _themeColors.dismissedBackgroundColor,
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 16),
-                child: const Icon(Icons.delete, color: Colors.white),
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  todo.isCompleted ? null : _editTodoItem(todo);
-                },
-                child: Container(
-                  color: backgroundColor,
-                  child: ListTile(
-                    title: Text(
-                      todo.title,
-                      style: TextStyle(
-                        color: textColor,
-                        decoration: todo.isCompleted
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
-                    ),
-                    trailing: Checkbox(
-                        value: todo.isCompleted,
-                        onChanged: (value) {
-                          _onCheckboxChanged(index, value ?? false);
-                        },
-                        activeColor: _themeColors.activeColor),
-                    leading: Icon(
-                      todo.isCompleted ? Icons.check : Icons.hourglass_bottom,
-                      color: todo.isCompleted
-                          ? _themeColors.dismissedTextColor
-                          : _themeColors.dismissedBackgroundColor,
-                    ),
+            return Dismissible(
+                key: ValueKey<Todo>(todo),
+                onDismissed: (direction) => _removeTodoById(todo.id),
+                background: Container(
+                  color: _themeColors.dismissedBackgroundColor,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.only(left: 16),
+                ),
+                secondaryBackground: Container(
+                  // Card 위젯으로 변경
+                  color: _themeColors.dismissedBackgroundColor,
+                  // elevation: 4.0,
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16),
+                    child: const Icon(Icons.delete, color: Colors.white),
                   ),
                 ),
-              ));
-        },
-      ),
+                child: GestureDetector(
+                  onTap: () {
+                    todo.isCompleted ? null : _editTodoItem(todo);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    color: backgroundColor,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        "${todo.id}.  ${todo.title} ",
+                        style: TextStyle(
+                          color: textColor,
+                          decoration: todo.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      trailing: Checkbox(
+                          value: todo.isCompleted,
+                          onChanged: (value) {
+                            _onCheckboxChanged(index, value ?? false);
+                          },
+                          activeColor: _themeColors.activeColor),
+                      leading: Icon(
+                        todo.isCompleted ? Icons.check : Icons.hourglass_bottom,
+                        color: todo.isCompleted
+                            ? _themeColors.dismissedTextColor
+                            : _themeColors.dismissedBackgroundColor,
+                      ),
+                    ),
+                  ),
+                ));
+          },
+        ),
+
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 120,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '$_plantCm cm',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color.fromARGB(255, 15, 173, 81)),
+              ),
+            ],
+          ),
+        ),
+
+        // 애니메이션
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 14,
+          child: AnimatedOpacity(
+            opacity: _isCompleted ? 0.0 : 1.0,
+            duration: const Duration(milliseconds: 2000),
+            child: Image.network(
+              'https://cdn-icons-png.flaticon.com/512/2970/2970461.png',
+              width: 100,
+              height: 100,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 24,
+          bottom: 9,
+          child: AnimatedOpacity(
+            opacity: _isCompleted ? 1.0 : 0.2,
+            duration: const Duration(milliseconds: 500),
+            child: Image.network(
+              'https://cdn-icons-png.flaticon.com/512/9582/9582758.png',
+              width: 90,
+              height: 90,
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          height: 20,
+          left: 0,
+          right: 0,
+          child: Container(
+            color: const Color(0xFFB6766B),
+          ),
+        ),
+      ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _addTodo();
