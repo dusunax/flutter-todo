@@ -82,6 +82,41 @@ class _TodoListPageState extends State<TodoListPage> {
     });
   }
 
+  /** 할 일 수정 함수 : 완료되지 않은 리스트를 클릭 시, 수정합니다.*/
+  void _editTodoItem(Todo todo) {
+    final titleController = TextEditingController(text: todo.title);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('할 일 수정'),
+          content: TextField(
+            autofocus: true,
+            controller: titleController,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  todo.title = titleController.text;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('저장'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,60 +147,50 @@ class _TodoListPageState extends State<TodoListPage> {
           final textColor = _themeColors.textColor;
 
           return Dismissible(
-            key: ValueKey<Todo>(todo),
-            onDismissed: (direction) => _removeTodo(index),
-            background: Container(
-              color: _themeColors.dismissedBackgroundColor,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.only(left: 16),
-              child: const Icon(
-                Icons.abc,
-                color: Colors.white,
+              key: ValueKey<Todo>(todo),
+              onDismissed: (direction) => _removeTodo(index),
+              background: Container(
+                color: _themeColors.dismissedBackgroundColor,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 16),
               ),
-            ),
-            secondaryBackground: Container(
-              color: _themeColors.dismissedBackgroundColor,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 16),
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            child: Container(
-              color: backgroundColor,
-              child: ListTile(
-                title: Text(
-                  todo.title,
-                  style: TextStyle(
-                    color: textColor,
-                    decoration:
-                        todo.isCompleted ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Checkbox(
+              secondaryBackground: Container(
+                color: _themeColors.dismissedBackgroundColor,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 16),
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  todo.isCompleted ? null : _editTodoItem(todo);
+                },
+                child: Container(
+                  color: backgroundColor,
+                  child: ListTile(
+                    title: Text(
+                      todo.title,
+                      style: TextStyle(
+                        color: textColor,
+                        decoration: todo.isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                    ),
+                    trailing: Checkbox(
                         value: todo.isCompleted,
                         onChanged: (value) {
                           _onCheckboxChanged(index, value ?? false);
                         },
                         activeColor: _themeColors.activeColor),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red[300]),
-                      onPressed: () {
-                        _removeTodo(index);
-                      },
+                    leading: Icon(
+                      todo.isCompleted ? Icons.check : Icons.hourglass_bottom,
+                      color: todo.isCompleted
+                          ? _themeColors.dismissedTextColor
+                          : _themeColors.dismissedBackgroundColor,
                     ),
-                  ],
+                  ),
                 ),
-                leading: Icon(
-                  todo.isCompleted ? Icons.check : Icons.hourglass_bottom,
-                  color: todo.isCompleted
-                      ? _themeColors.dismissedTextColor
-                      : _themeColors.dismissedBackgroundColor,
-                ),
-              ),
-            ),
-          );
+              ));
         },
       ),
       floatingActionButton: FloatingActionButton(

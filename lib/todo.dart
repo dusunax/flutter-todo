@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Todo {
   final int id;
-  final String title;
+  late String title;
   bool isCompleted;
   IconData? icon;
 
