@@ -280,7 +280,10 @@ class _TodoListPageState extends State<TodoListPage> {
         onPressed: () {
           _addTodo();
         },
-        child: const Icon(Icons.add),
+        child: const Icon(
+          Icons.add_reaction_rounded,
+          color: Colors.white,
+        ),
       ),
     );
   }
