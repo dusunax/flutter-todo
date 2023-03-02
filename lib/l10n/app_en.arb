@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+
+  "title": "Todo List",
+  "add_todo": "Add Todo",
+  "add": "Add",
+  "todo_added": "Todo added",
+  "todo_deleted": "Todo deleted",
+  "complete_todo": "Complete Todo",
+  "undo": "Undo"
+}

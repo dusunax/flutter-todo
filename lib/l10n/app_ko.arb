@@ -1,15 +1,4 @@
-jsonCopy code
 {
-  "@@locale": "en",
-
-  "title": "Todo List",
-  "add_todo": "Add Todo",
-  "add": "Add",
-  "todo_added": "Todo added",
-  "todo_deleted": "Todo deleted",
-  "complete_todo": "Complete Todo",
-  "undo": "Undo",
-
   "@@locale": "ko",
 
   "title": "투두 리스트",

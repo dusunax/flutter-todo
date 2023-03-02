@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:todo/todo_list_page.dart';
+
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,8 +39,8 @@ class MyApp extends StatelessWidget {
               ],
               // ignore: prefer_const_literals_to_create_immutables
               supportedLocales: [
-                const Locale('en', ''), // 영어
-                const Locale('ko', ''), // 한국어
+                Locale('en', ''), // 영어
+                Locale('ko', ''), // 한국어
               ],
               home: const TodoListPage());
         });
