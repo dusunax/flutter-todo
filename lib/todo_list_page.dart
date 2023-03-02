@@ -13,7 +13,7 @@ class TodoListPage extends StatefulWidget {
 class _TodoListPageState extends State<TodoListPage> {
   // 클래스 멤버 변수
   bool _isDarkMode = false;
-  bool _isCompleted = false;
+  bool _isCheckboxClicked = false;
   int _plantCm = 0;
 
   // 투두 리스트 색상
@@ -76,22 +76,25 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   // 체크박스 상태 변경 함수
-  void _onCheckboxChanged(int index, bool isCompleted) {
+  void _onCheckboxChanged(int id, bool isChecked) {
     setState(() {
-      final todo = _todoList[index];
-      _removeTodoById(todo.id);
-      todo.isCompleted = isCompleted;
-      _todoList.insert(isCompleted ? _todoList.length : 0, todo);
+      // firstWhere : 첫번째 매치를 찾는 함수 ex) Array.filter
+      final todo = _todoList.firstWhere((todo) => todo.id == id);
+      todo.isChecked = isChecked;
 
-      if (isCompleted) {
-        final todo = _todoList[index];
+      // 투두를 지우고, 마지막 또는 첫번째에 붙여넣기 합니다.
+      _removeTodoById(id);
+      _todoList.insert(isChecked ? _todoList.length : 0, todo);
+
+      if (isChecked) {
         // 완료 시 plant_cm 증가
-        todo.plantCm += 1;
+        _plantCm += 1;
+
         // 이미지 표시 후 0.5초 후 사라지도록 설정
-        _isCompleted = true;
+        _isCheckboxClicked = true;
         Future.delayed(const Duration(milliseconds: 800), () {
           setState(() {
-            _isCompleted = false;
+            _isCheckboxClicked = false;
           });
         });
       }
@@ -135,7 +138,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
-    _plantCm = _todoList.length * 1;
+    _plantCm = _todoList.where((todo) => todo.isChecked).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -159,7 +162,7 @@ class _TodoListPageState extends State<TodoListPage> {
           itemBuilder: (BuildContext context, int index) {
             final todo = _todoList[index];
 
-            final backgroundColor = todo.isCompleted
+            final backgroundColor = todo.isChecked
                 ? _themeColors.dismissedBackgroundColor
                 : Colors.transparent;
 
@@ -185,7 +188,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 ),
                 child: GestureDetector(
                   onTap: () {
-                    todo.isCompleted ? null : _editTodoItem(todo);
+                    todo.isChecked ? null : _editTodoItem(todo);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -196,20 +199,20 @@ class _TodoListPageState extends State<TodoListPage> {
                         "${todo.id}.  ${todo.title} ",
                         style: TextStyle(
                           color: textColor,
-                          decoration: todo.isCompleted
+                          decoration: todo.isChecked
                               ? TextDecoration.lineThrough
                               : null,
                         ),
                       ),
                       trailing: Checkbox(
-                          value: todo.isCompleted,
+                          value: todo.isChecked,
                           onChanged: (value) {
                             _onCheckboxChanged(todo.id, value ?? false);
                           },
                           activeColor: _themeColors.activeColor),
                       leading: Icon(
-                        todo.isCompleted ? Icons.check : Icons.hourglass_bottom,
-                        color: todo.isCompleted
+                        todo.isChecked ? Icons.check : Icons.hourglass_bottom,
+                        color: todo.isChecked
                             ? _themeColors.dismissedTextColor
                             : _themeColors.dismissedBackgroundColor,
                       ),
@@ -243,7 +246,7 @@ class _TodoListPageState extends State<TodoListPage> {
           right: 0,
           bottom: 14,
           child: AnimatedOpacity(
-            opacity: _isCompleted ? 0.0 : 1.0,
+            opacity: _isCheckboxClicked ? 0.0 : 1.0,
             duration: const Duration(milliseconds: 2000),
             child: Image.network(
               'https://cdn-icons-png.flaticon.com/512/2970/2970461.png',
@@ -256,7 +259,7 @@ class _TodoListPageState extends State<TodoListPage> {
           left: 24,
           bottom: 9,
           child: AnimatedOpacity(
-            opacity: _isCompleted ? 1.0 : 0.2,
+            opacity: _isCheckboxClicked ? 1.0 : 0.2,
             duration: const Duration(milliseconds: 500),
             child: Image.network(
               'https://cdn-icons-png.flaticon.com/512/9582/9582758.png',

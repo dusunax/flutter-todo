@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 class Todo {
   final int id;
   late String title;
-  bool isCompleted;
+  bool isChecked;
   IconData? icon;
   int plantCm; // 화분의 높이 정보를 저장하는 필드
 
   Todo({
     required this.id,
     required this.title,
-    this.isCompleted = false,
+    this.isChecked = false,
     this.plantCm = 0, // 화분의 높이를 0으로 초기화
   });
 }
