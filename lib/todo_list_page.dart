@@ -83,7 +83,6 @@ class _TodoListPageState extends State<TodoListPage> {
       todo.isCompleted = isCompleted;
       _todoList.insert(isCompleted ? _todoList.length : 0, todo);
 
-      _plantCm = _todoList.length * 1;
       if (isCompleted) {
         final todo = _todoList[index];
         // 완료 시 plant_cm 증가
@@ -146,9 +145,9 @@ class _TodoListPageState extends State<TodoListPage> {
           IconButton(
             // 토글 부분
             onPressed: () {
+              bool currentMode = !_isDarkMode;
               MyApp.themeNotifier.value =
-                  _isDarkMode ? ThemeMode.dark : ThemeMode.light;
-              _isDarkMode = !_isDarkMode;
+                  currentMode ? ThemeMode.dark : ThemeMode.light;
             },
             icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
           ),
@@ -205,7 +204,7 @@ class _TodoListPageState extends State<TodoListPage> {
                       trailing: Checkbox(
                           value: todo.isCompleted,
                           onChanged: (value) {
-                            _onCheckboxChanged(index, value ?? false);
+                            _onCheckboxChanged(todo.id, value ?? false);
                           },
                           activeColor: _themeColors.activeColor),
                       leading: Icon(
@@ -280,9 +279,9 @@ class _TodoListPageState extends State<TodoListPage> {
         onPressed: () {
           _addTodo();
         },
-        child: const Icon(
+        child: Icon(
           Icons.add_reaction_rounded,
-          color: Colors.white,
+          color: _themeColors.iconColor,
         ),
       ),
     );

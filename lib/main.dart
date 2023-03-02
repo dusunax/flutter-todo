@@ -15,18 +15,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: MyApp.themeNotifier.value == ThemeMode.light
-          ? Colors.white
-          : Colors.black,
-      statusBarIconBrightness: MyApp.themeNotifier.value == ThemeMode.light
-          ? Brightness.dark
-          : Brightness.light,
-      statusBarBrightness: MyApp.themeNotifier.value == ThemeMode.light
-          ? Brightness.dark
-          : Brightness.light,
-    ));
-
     return ValueListenableBuilder<ThemeMode>(
         valueListenable: themeNotifier,
         builder: (_, ThemeMode currentMode, __) {

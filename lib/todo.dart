@@ -22,6 +22,7 @@ class ThemeColors {
   final Color textColor;
   final Color activeColor;
   final Color deleteIconColor;
+  final Color iconColor;
 
   ThemeColors({
     required this.backgroundColor,
@@ -30,25 +31,26 @@ class ThemeColors {
     required this.textColor,
     required this.activeColor,
     required this.deleteIconColor,
+    required this.iconColor,
   });
 
   static ThemeColors get darkTheme => ThemeColors(
-        textColor: Colors.white,
-        backgroundColor: Colors.grey[900]!,
-        dismissedTextColor: Colors.green,
-        dismissedBackgroundColor: Colors.grey[700]!,
-        activeColor: Colors.blue,
-        deleteIconColor: Colors.red,
-      );
+      textColor: Colors.white,
+      backgroundColor: Colors.grey[900]!,
+      dismissedTextColor: Colors.green,
+      dismissedBackgroundColor: Colors.grey[700]!,
+      activeColor: Colors.blue,
+      deleteIconColor: Colors.red,
+      iconColor: Colors.black);
 
   static ThemeColors get lightTheme => ThemeColors(
-        textColor: Colors.black,
-        backgroundColor: Colors.white,
-        dismissedTextColor: Colors.blue,
-        dismissedBackgroundColor: Colors.grey[300]!,
-        activeColor: Colors.blue,
-        deleteIconColor: Colors.red,
-      );
+      textColor: Colors.black,
+      backgroundColor: Colors.white,
+      dismissedTextColor: Colors.blue,
+      dismissedBackgroundColor: Colors.grey[300]!,
+      activeColor: Colors.blue,
+      deleteIconColor: Colors.red,
+      iconColor: Colors.white);
 }
 
 final _themeColors = {
