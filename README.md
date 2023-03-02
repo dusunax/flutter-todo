@@ -45,15 +45,21 @@
 
 ### 230227 진행 상황
 - 할 일 쓰기, 삭제, 완료
-- 다크모드 추가 (버그 있음)
+- 다크모드 추가
 
 ![image](https://user-images.githubusercontent.com/94776135/221604167-57825482-d48d-4685-ae64-4d57bfd6ad9c.png)
 
 ### 230301 진행 상황
 - 다크모드 수정 (status바 수정 필요)
-- 기본 CRUD (버그 있음) 
+- 기본 CRUD
   - 리스트는 Dismissible(드래그로 삭제)
 - 애니메이션 추가
 
 ![image](https://user-images.githubusercontent.com/94776135/221907912-f0058c02-5134-42e1-ac61-b71f6874773a.png)
 
+### 230302 진행 상황
+- 각종 버그 및 UI 개선
+- 수정 내용: l18n 한글, 아이콘 theme, 다크모드, 체크박스, _plantCm
+- [l18n 레퍼런스](https://fronquarry.tistory.com/8)
+
+![image](https://user-images.githubusercontent.com/94776135/222470888-a76d4597-44e8-4000-96fb-4283b2ed2b19.png)
