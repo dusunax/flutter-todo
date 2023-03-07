@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:todo/todo_list_page.dart';
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'todo_list_page.dart';
+import 'package:path_provider/path_provider.dart';
+import 'helpers/todo_database_helper.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final directory = await getApplicationDocumentsDirectory();
+  final databasePath = '${directory.path}/todo.db';
+  runApp(MyApp(databasePath: databasePath));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key, required this.databasePath}) : super(key: key);
+
+  final String databasePath;
 
   static final ValueNotifier<ThemeMode> themeNotifier =
       ValueNotifier(ThemeMode.light);
@@ -19,30 +25,40 @@ class MyApp extends StatelessWidget {
     return ValueListenableBuilder<ThemeMode>(
         valueListenable: themeNotifier,
         builder: (_, ThemeMode currentMode, __) {
-          return MaterialApp(
-              title: '체크 리스트',
-              theme: ThemeData(
-                primarySwatch: Colors.orange,
-                appBarTheme: AppBarTheme(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.grey[800],
-                  shadowColor: Colors.grey[100],
-                  centerTitle: true,
-                ),
-              ),
-              darkTheme: ThemeData.dark(),
-              themeMode: currentMode,
-              localizationsDelegates: const <LocalizationsDelegate<Object>>[
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              // ignore: prefer_const_literals_to_create_immutables
-              supportedLocales: [
-                Locale('en', ''), // 영어
-                Locale('ko', ''), // 한국어
-              ],
-              home: const TodoListPage());
+          return FutureBuilder(
+            future:
+                TodoDatabaseHelper.instance.init(databasePath: databasePath),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text('Error initializing database'),
+                  );
+                } else {
+                  return MaterialApp(
+                    title: 'Todo App',
+                    theme: ThemeData(
+                      primarySwatch: Colors.blue,
+                      visualDensity: VisualDensity.adaptivePlatformDensity,
+                    ),
+                    themeMode: currentMode,
+                    localizationsDelegates: const [
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+                    supportedLocales: const [
+                      Locale('en', ''), // English
+                      Locale('ko', ''), // Korean
+                    ],
+                    home: const TodoListPage(),
+                  );
+                }
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          );
         });
   }
 }

@@ -15,6 +15,47 @@ class Todo {
   });
 }
 
+class TodoDBType {
+  static const String tableTodos = 'todos';
+  static const String columnId = 'id';
+  static const String columnTitle = 'title';
+  static const String columnIsChecked = 'isChecked';
+
+  static const List<String> values = [columnId, columnTitle, columnIsChecked];
+
+  int id;
+  String title;
+  bool isChecked;
+
+  TodoDBType({this.id = 0, required this.title, this.isChecked = false});
+
+  Map<String, dynamic> toMap() {
+    return {
+      columnTitle: title,
+      columnIsChecked: isChecked ? 1 : 0,
+    };
+  }
+
+  TodoDBType copy({
+    int? id,
+    String? title,
+    bool? isChecked,
+  }) =>
+      TodoDBType(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        isChecked: isChecked ?? this.isChecked,
+      );
+
+  factory TodoDBType.fromMap(Map<String, dynamic> map) {
+    return TodoDBType(
+      id: map[columnId],
+      title: map[columnTitle],
+      isChecked: map[columnIsChecked] == 1,
+    );
+  }
+}
+
 class ThemeColors {
   final Color backgroundColor;
   final Color dismissedBackgroundColor;

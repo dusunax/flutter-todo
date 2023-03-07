@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'package:todo/main.dart';
 import 'package:todo/todo.dart';
+import 'package:todo/helpers/todo_database_helper.dart';
 
 class TodoListPage extends StatefulWidget {
   const TodoListPage({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
-  _TodoListPageState createState() => _TodoListPageState();
+  TodoListPageState createState() => TodoListPageState();
 }
 
-class _TodoListPageState extends State<TodoListPage> {
+class TodoListPageState extends State<TodoListPage> {
+  // db instance
+  late String appDocumentsDirectory;
+  final dbHelper = TodoDatabaseHelper.instance;
+
+  // 투두 리스트
+  List<TodoDBType>? _todoList;
+  // final List<Todo> _todoList = [];
+
   // 클래스 멤버 변수
   bool _isDarkMode = false;
   bool _isCheckboxClicked = false;
@@ -19,15 +30,26 @@ class _TodoListPageState extends State<TodoListPage> {
   // 투두 리스트 색상
   late ThemeColors _themeColors;
 
-  // 투두 리스트
-  final List<Todo> _todoList = [];
-
   @override
   void initState() {
     super.initState();
     _isDarkMode = MyApp.themeNotifier.value == ThemeMode.dark;
     _themeColors = _isDarkMode ? ThemeColors.darkTheme : ThemeColors.lightTheme;
     MyApp.themeNotifier.addListener(_onThemeChanged);
+
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    final directory = await getApplicationDocumentsDirectory();
+    appDocumentsDirectory = directory.path;
+
+    final todoList = await dbHelper.readAll();
+    // ignore: avoid_print
+    print(todoList);
+    setState(() {
+      _todoList = todoList;
+    });
   }
 
   @override
@@ -44,47 +66,84 @@ class _TodoListPageState extends State<TodoListPage> {
     });
   }
 
+  // -------------------함수 시작-----------------------------------
+
   // 할 일 추가 함수
-  void _addTodo() {
-    // 다이얼로그를 띄워 입력받은 후 _todoList에 추가
-    showDialog(
+  void _addTodo() async {
+    // 다이얼로그를 띄워 입력받은 후 db에 추가
+    final newTodo = await showDialog(
       context: context,
       builder: (BuildContext context) {
+        String? title;
         return AlertDialog(
           title: const Text('할 일 추가'),
           content: TextField(
             autofocus: true,
-            onSubmitted: (text) {
-              setState(() {
-                final lastTodo = _todoList.isNotEmpty ? _todoList.last : null;
-                final newTodo = Todo(title: text, id: (lastTodo?.id ?? 0) + 1);
-                _todoList.insert(0, newTodo); // 맨 앞에 추가
-              });
-              Navigator.pop(context);
+            onChanged: (text) {
+              title = text;
             },
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, null);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (title == null || title!.isEmpty) {
+                  return;
+                }
+                final todo = TodoDBType(
+                  id: _todoList?.length ?? 1,
+                  title: title!,
+                );
+
+                final createdTodo = await dbHelper.create(todo);
+                // ignore: use_build_context_synchronously
+                Navigator.pop(context, createdTodo);
+              },
+              child: const Text('추가'),
+            ),
+          ],
         );
       },
     );
+    if (newTodo != null) {
+      setState(() {
+        _todoList ??= []; // null일 경우에 빈 배열로 초기화
+        _todoList!.insert(0, newTodo); // 맨 앞에 추가
+      });
+    }
   }
 
   // 할 일 제거 함수
-  void _removeTodoById(int id) {
-    setState(() {
-      _todoList.removeWhere((todo) => todo.id == id); // 리스트에서 삭제
-    });
+  void _removeTodoById(int id) async {
+    final todo = _todoList?.firstWhereOrNull((todo) => todo.id == id);
+    if (todo != null) {
+      await dbHelper.delete(todo); // db에서 삭제
+      setState(() {
+        _todoList?.removeWhere((todo) => todo.id == id); // 리스트에서 삭제
+      });
+    }
   }
 
   // 체크박스 상태 변경 함수
-  void _onCheckboxChanged(int id, bool isChecked) {
+  void _onCheckboxChanged(int id, bool isChecked) async {
     setState(() {
       // firstWhere : 첫번째 매치를 찾는 함수 ex) Array.filter
-      final todo = _todoList.firstWhere((todo) => todo.id == id);
+      final todo = _todoList?.firstWhere((todo) => todo.id == id);
+      if (_todoList == null || todo == null) return;
+
       todo.isChecked = isChecked;
+
+      // DB에서 업데이트
+      dbHelper.update(todo);
 
       // 투두를 지우고, 마지막 또는 첫번째에 붙여넣기 합니다.
       _removeTodoById(id);
-      _todoList.insert(isChecked ? _todoList.length : 0, todo);
+      _todoList?.insert(isChecked ? (_todoList?.length ?? 0) : 0, todo);
 
       if (isChecked) {
         // 완료 시 plant_cm 증가
@@ -102,7 +161,7 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   /// 할 일 수정 함수 : 완료되지 않은 리스트를 클릭 시, 수정합니다.
-  void _editTodoItem(Todo todo) {
+  void _editTodoItem(TodoDBType todo) {
     final titleController = TextEditingController(text: todo.title);
 
     showDialog(
@@ -122,10 +181,18 @@ class _TodoListPageState extends State<TodoListPage> {
               child: const Text('취소'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                final updatedTodo = todo.copy(title: titleController.text);
+                await dbHelper.update(updatedTodo);
+
                 setState(() {
-                  todo.title = titleController.text;
+                  final index = _todoList?.indexWhere((t) => t.id == todo.id);
+                  if (index == null) return;
+
+                  _todoList?[index] = updatedTodo;
                 });
+
+                // ignore: use_build_context_synchronously
                 Navigator.pop(context);
               },
               child: const Text('저장'),
@@ -138,7 +205,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
-    _plantCm = _todoList.where((todo) => todo.isChecked).length;
+    _plantCm = _todoList?.where((todo) => todo.isChecked).length ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -158,9 +225,10 @@ class _TodoListPageState extends State<TodoListPage> {
       ),
       body: Stack(children: [
         ListView.builder(
-          itemCount: _todoList.length,
+          itemCount: _todoList?.length ?? 0,
           itemBuilder: (BuildContext context, int index) {
-            final todo = _todoList[index];
+            final todo = _todoList?[index];
+            if (todo == null) return null;
 
             final backgroundColor = todo.isChecked
                 ? _themeColors.dismissedBackgroundColor
@@ -169,7 +237,7 @@ class _TodoListPageState extends State<TodoListPage> {
             final textColor = _themeColors.textColor;
 
             return Dismissible(
-                key: ValueKey<Todo>(todo),
+                key: ValueKey<int>(todo.id),
                 onDismissed: (direction) => _removeTodoById(todo.id),
                 background: Container(
                   color: _themeColors.dismissedBackgroundColor,

@@ -7,24 +7,37 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:todo/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Todo list adds new item', (WidgetTester tester) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final databasePath = '${directory.path}/todo.db';
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+// Build our app and trigger a frame.
+    await tester.pumpWidget(MyApp(databasePath: databasePath));
 
-    // Tap the '+' icon and trigger a frame.
+// Verify that the initial todo list is empty
+    expect(find.byType(ListView), findsOneWidget);
+    expect(find.text('할 일 추가'), findsNothing);
+
+// Tap the '+' icon to add new todo item
     await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+
+// Verify that the dialog appears
+    expect(find.text('할 일 추가'), findsOneWidget);
+
+// Enter a new todo item title
+    await tester.enterText(find.byType(TextField), 'New Todo Item');
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+// Tap the '추가' button to add new todo item
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+
+// Verify that the new todo item is added to the list
+    expect(find.text('New Todo Item'), findsOneWidget);
   });
 }
