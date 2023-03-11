@@ -48,6 +48,9 @@ class TodoListPageState extends State<TodoListPage> {
     appDocumentsDirectory = directory.path;
 
     final todoList = await dbHelper.readAll();
+    // ignore: avoid_print
+    print(todoList);
+    
     setState(() {
       _todoList = todoList;
     });
@@ -109,6 +112,12 @@ class TodoListPageState extends State<TodoListPage> {
         );
       },
     );
+    if (newTodo != null) {
+      setState(() {
+        _todoList ??= []; // null일 경우에 빈 배열로 초기화
+        _todoList!.insert(0, newTodo); // 맨 앞에 추가
+      });
+    }
   }
 
   // 할 일 제거 함수
