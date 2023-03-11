@@ -63,3 +63,12 @@
 - [l18n 레퍼런스](https://fronquarry.tistory.com/8)
 
 ![image](https://user-images.githubusercontent.com/94776135/222470888-a76d4597-44e8-4000-96fb-4283b2ed2b19.png)
+
+### 230306 진행 상황
+- database: sqflite 플러그인 버그 발생
+- 안드로이드 에뮬과 연결이 안되는 현상 발생
+
+### 230308 진행 상황
+- 플러터 디버그 모드 사용 시작(에뮬도 작동)
+- 일부 버그 수정 및 코드 정리
+- Navigator.pop(context, createdTodo) => js의 popstate랑 비슷함
