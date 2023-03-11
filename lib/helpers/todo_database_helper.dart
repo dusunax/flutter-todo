@@ -39,6 +39,25 @@ class TodoDatabaseHelper {
     return await db.insert('todos', todo.toMap());
   }
 
+  Future<TodoDBType> saveTodo(int id, TodoDBType todo) async {
+    final db = _database;
+    db?.insert(
+      // 새 레코드 추가
+      tableTodo,
+      todo.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    // 새 정보로 만든 newTodo
+    final newTodo = TodoDBType(
+      id: id,
+      title: todo.title,
+      isChecked: todo.isChecked,
+    );
+
+    return newTodo;
+  }
+
   Future<List<TodoDBType>> readAll() async {
     final db = _database;
     if (db == null) return [];
