@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+const String tableTodo = 'todos';
+
 class Todo {
   final int id;
   late String title;
@@ -93,8 +95,3 @@ class ThemeColors {
       deleteIconColor: Colors.red,
       iconColor: Colors.white);
 }
-
-final _themeColors = {
-  'dark': ThemeColors.darkTheme,
-  'light': ThemeColors.lightTheme,
-};

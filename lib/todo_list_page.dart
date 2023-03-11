@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:todo/main.dart';
@@ -26,6 +27,7 @@ class TodoListPageState extends State<TodoListPage> {
   bool _isDarkMode = false;
   bool _isCheckboxClicked = false;
   int _plantCm = 0;
+  final TextStyle _fontStyle = GoogleFonts.average();
 
   // 투두 리스트 색상
   late ThemeColors _themeColors;
@@ -33,9 +35,10 @@ class TodoListPageState extends State<TodoListPage> {
   @override
   void initState() {
     super.initState();
+
     _isDarkMode = MyApp.themeNotifier.value == ThemeMode.dark;
-    _themeColors = _isDarkMode ? ThemeColors.darkTheme : ThemeColors.lightTheme;
     MyApp.themeNotifier.addListener(_onThemeChanged);
+    _themeColors = _isDarkMode ? ThemeColors.darkTheme : ThemeColors.lightTheme;
 
     _initData();
   }
@@ -47,6 +50,7 @@ class TodoListPageState extends State<TodoListPage> {
     final todoList = await dbHelper.readAll();
     // ignore: avoid_print
     print(todoList);
+    
     setState(() {
       _todoList = todoList;
     });
@@ -71,12 +75,12 @@ class TodoListPageState extends State<TodoListPage> {
   // 할 일 추가 함수
   void _addTodo() async {
     // 다이얼로그를 띄워 입력받은 후 db에 추가
-    final newTodo = await showDialog(
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         String? title;
         return AlertDialog(
-          title: const Text('할 일 추가'),
+          title: Text('할 일 추가', style: _fontStyle),
           content: TextField(
             autofocus: true,
             onChanged: (text) {
@@ -92,15 +96,13 @@ class TodoListPageState extends State<TodoListPage> {
             ),
             TextButton(
               onPressed: () async {
-                if (title == null || title!.isEmpty) {
-                  return;
-                }
-                final todo = TodoDBType(
-                  id: _todoList?.length ?? 1,
-                  title: title!,
-                );
+                final todo = TodoDBType(title: title!, isChecked: false);
+                final id = _todoList?.length ?? 1;
+                final createdTodo = await dbHelper.saveTodo(id, todo);
 
-                final createdTodo = await dbHelper.create(todo);
+                setState(() {
+                  _todoList!.insert(0, createdTodo);
+                });
                 // ignore: use_build_context_synchronously
                 Navigator.pop(context, createdTodo);
               },
@@ -138,7 +140,7 @@ class TodoListPageState extends State<TodoListPage> {
 
       todo.isChecked = isChecked;
 
-      // DB에서 업데이트
+      // DB 수정
       dbHelper.update(todo);
 
       // 투두를 지우고, 마지막 또는 첫번째에 붙여넣기 합니다.
@@ -230,6 +232,7 @@ class TodoListPageState extends State<TodoListPage> {
             final todo = _todoList?[index];
             if (todo == null) return null;
 
+            // 완료 상태라면 dismissedBackgroundColor사용
             final backgroundColor = todo.isChecked
                 ? _themeColors.dismissedBackgroundColor
                 : Colors.transparent;

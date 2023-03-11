@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'todo_list_page.dart';
 import 'package:path_provider/path_provider.dart';
-import 'helpers/todo_database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,52 +11,44 @@ void main() async {
   runApp(MyApp(databasePath: databasePath));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key, required this.databasePath}) : super(key: key);
-
+class MyApp extends StatefulWidget {
   final String databasePath;
 
-  static final ValueNotifier<ThemeMode> themeNotifier =
-      ValueNotifier(ThemeMode.light);
+  const MyApp({super.key, required this.databasePath});
+
+  // define the themeNotifier as a static field
+  static final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ValueNotifier<ThemeMode> themeNotifier =
+      ValueNotifier<ThemeMode>(ThemeMode.light);
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
         valueListenable: themeNotifier,
         builder: (_, ThemeMode currentMode, __) {
-          return FutureBuilder(
-            future:
-                TodoDatabaseHelper.instance.init(databasePath: databasePath),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('Error initializing database'),
-                  );
-                } else {
-                  return MaterialApp(
-                    title: 'Todo App',
-                    theme: ThemeData(
-                      primarySwatch: Colors.blue,
-                      visualDensity: VisualDensity.adaptivePlatformDensity,
-                    ),
-                    themeMode: currentMode,
-                    localizationsDelegates: const [
-                      GlobalMaterialLocalizations.delegate,
-                      GlobalWidgetsLocalizations.delegate,
-                      GlobalCupertinoLocalizations.delegate,
-                    ],
-                    supportedLocales: const [
-                      Locale('en', ''), // English
-                      Locale('ko', ''), // Korean
-                    ],
-                    home: const TodoListPage(),
-                  );
-                }
-              } else {
-                return const CircularProgressIndicator();
-              }
-            },
+          return MaterialApp(
+            title: 'Todo App',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+            ),
+            themeMode: currentMode,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', ''), // English
+              Locale('ko', ''), // Korean
+            ],
+            home: const TodoListPage(),
           );
         });
   }
